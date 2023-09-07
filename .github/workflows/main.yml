@@ -28,4 +28,4 @@ jobs:
 
       # check PEP8 of files *.py in backend/
       - name: Check PEP8 with flake8
-        run: flake8 backend/
+        run: flake8 .
