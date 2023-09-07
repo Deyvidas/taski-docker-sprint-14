@@ -16,7 +16,7 @@ jobs:
 
       # install Python3.9 in workflow server;
       - name: Set up Python3.9
-        uses: actions/setup-python@4
+        uses: actions/setup-python@v4
         with:
           python-version: 3.9
 
