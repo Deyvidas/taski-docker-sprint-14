@@ -20,10 +20,10 @@ jobs:
         with:
           python-version: 3.9
 
-      # update modules pip and setuptools, then installing flake8
+      # update modules pip and setuptools, then installing requirements and flake8
       - name: Update pip and install dependency
         run: |
-          pip install -U pip setuptools
+          pip install -U pip setuptools -r backend/requirements.txt
           pip install flake8==6.0.0 flake8-isort==6.0.0
 
       # check PEP8 of files *.py in backend/ and run django tests
