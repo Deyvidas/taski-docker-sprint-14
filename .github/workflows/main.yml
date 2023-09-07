@@ -26,6 +26,9 @@ jobs:
           pip install -U pip setuptools
           pip install flake8==6.0.0 flake8-isort==6.0.0
 
-      # check PEP8 of files *.py in backend/
+      # check PEP8 of files *.py in backend/ and run django tests
       - name: Check PEP8 with flake8
-        run: flake8 .
+        run: |
+          cd backend/
+          flake8 .
+          python manage.py test
