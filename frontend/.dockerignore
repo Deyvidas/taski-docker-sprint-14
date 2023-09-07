@@ -1,0 +1,22 @@
+# environment
+.env
+venv/
+env/
+
+# python
+__pycache__/
+
+# js
+node_modules
+build
+
+# database
+db.sqlite3
+
+# git
+.git
+.gitignore
+
+# docker
+Dockerfile
+.dockerignore
