@@ -3,9 +3,13 @@ name: Main taski workflow
 on: push
 
 jobs:
-  run_tests:
+
+
+  # ----------------------------------------------------------- backend testing
+  backend_tests:
     runs-on: ubuntu-latest
     name: Create and run psql container, check PEP8 and run tests
+
     services:
       postgres:
         image: postgres:13.10
@@ -48,11 +52,39 @@ jobs:
           flake8 .
           python manage.py test
 
-  build_images_and_push_to_dockerhub:
-    needs: run_tests
+
+  # ---------------------------------------------------------- frontend testing
+  frontend_tests:
+    runs-on: ubuntu-latest
+    name: Install node and his dependencies, then run tests of spa components
+
+    steps:
+      -
+        name: Check out repository code
+        uses: actions/checkout@v3
+      -
+        name: Set up nodeJS version 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      -
+        name: Install dependencies
+        run: |
+          cd frontend/
+          npm ci
+      -
+        name: Test spa components
+        run: |
+          cd frontend/
+          npm run test
+
+
+  # -------------------------------------------------------- backend build&push
+  backend_build_and_push_to_dockerhub:
+    needs: backend_tests
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    name: Login to dockerhub, create docker images and push them
+    name: Login to dockerhub, create docker backend image and push this
 
     steps:
       -
@@ -68,9 +100,66 @@ jobs:
           username: ${{ secrets.DHL }}
           password: ${{ secrets.DHP }}
       -
-        name: Build and push created images on dockerhub
+        name: Build, then push created images on dockerhub
         uses: docker/build-push-action@v4
         with:
           context: ./backend/
           push: true
           tags: ${{ secrets.DHL }}/taski_backend:latest
+
+
+  # ------------------------------------------------------- frontend build&push
+  frontend_build_and_push_to_dockerhub:
+    needs: frontend_tests
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    name: Login to dockerhub, create docker frontend image and push this
+
+    steps:
+      -
+        name: Check out repository code
+        uses: actions/checkout@v3
+      -
+        name: Deploy Docker on workflow server
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to dockerhub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DHL }}
+          password: ${{ secrets.DHP }}
+      -
+        name: Build, then push created images on dockerhub
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend/
+          push: true
+          tags: ${{ secrets.DHL }}/taski_frontend:latest
+
+
+  # -------------------------------------------------------- gateway build&push
+  gateway_build_and_push_to_dockerhub:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    name: Login to dockerhub, create docker gateway image and push this
+
+    steps:
+      -
+        name: Check out repository code
+        uses: actions/checkout@v3
+      -
+        name: Deploy Docker on workflow server
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to dockerhub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DHL }}
+          password: ${{ secrets.DHP }}
+      -
+        name: Build, then push created images on dockerhub
+        uses: docker/build-push-action@v4
+        with:
+          context: ./gateway/
+          push: true
+          tags: ${{ secrets.DHL }}/taski_gateway:latest
