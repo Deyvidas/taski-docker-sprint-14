@@ -1,3 +1,4 @@
+python manage.py migrate
 rm -r /app/collected_static
 python manage.py collectstatic
 cp -r /app/collected_static/* /taski_backend_static/static

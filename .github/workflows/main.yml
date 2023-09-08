@@ -1,6 +1,9 @@
 name: Main taski workflow
 
-on: push
+on:
+  push:
+    paths-ignore:
+      - "README.md"
 
 jobs:
 
@@ -81,8 +84,8 @@ jobs:
 
   # -------------------------------------------------------- backend build&push
   backend_build_and_push_to_dockerhub:
-    needs: backend_tests
     if: github.ref == 'refs/heads/main'
+    needs: backend_tests
     runs-on: ubuntu-latest
     name: Login to dockerhub, create docker backend image and push this
 
@@ -110,8 +113,8 @@ jobs:
 
   # ------------------------------------------------------- frontend build&push
   frontend_build_and_push_to_dockerhub:
-    needs: frontend_tests
     if: github.ref == 'refs/heads/main'
+    needs: frontend_tests
     runs-on: ubuntu-latest
     name: Login to dockerhub, create docker frontend image and push this
 
@@ -163,3 +166,45 @@ jobs:
           context: ./gateway/
           push: true
           tags: ${{ secrets.DHL }}/taski_gateway:latest
+
+
+  # -------------------------------------------------------- gateway build&push
+  deploy_to_live_server:
+    if: github.ref == 'refs/heads/main'
+    needs:
+     - backend_build_and_push_to_dockerhub
+     - frontend_build_and_push_to_dockerhub
+     - gateway_build_and_push_to_dockerhub
+    runs-on: ubuntu-latest
+    name: Copy docker-compose.production.yml and reload all containers with actual version of images
+    env:
+      docker_compose_file: "docker-compose.production.yml"
+      root_app_dir: "taski"
+
+    steps:
+      -
+        name: Check out repository code
+        uses: actions/checkout@v3
+      -
+        name: Copy docker-compose.production.yml to live server via ssh
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          source: ${{ env.docker_compose_file }}
+          target: ${{ env.root_app_dir }}
+      -
+        name: Executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            cd ${{ env.root_app_dir }}
+            sudo docker compose -f ${{ env.docker_compose_file }} pull
+            sudo docker compose -f ${{ env.docker_compose_file }} down
+            sudo docker compose -f ${{ env.docker_compose_file }} up --detach
