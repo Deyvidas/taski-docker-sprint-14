@@ -59,7 +59,7 @@ jobs:
   # ---------------------------------------------------------- frontend testing
   frontend_tests:
     runs-on: ubuntu-latest
-    name: Install node and his dependencies, then run tests of spa components
+    name: Install node and this dependencies, then run tests of spa components
 
     steps:
       -
@@ -208,3 +208,19 @@ jobs:
             sudo docker compose -f ${{ env.docker_compose_file }} pull
             sudo docker compose -f ${{ env.docker_compose_file }} down
             sudo docker compose -f ${{ env.docker_compose_file }} up --detach
+
+
+  # ----------------------------------------------------- telegram notification
+  send_message_to_telegram:
+    needs: deploy_to_live_server
+    runs-on: ubuntu-latest
+    name: Send message about successed deploy of docker-compose to remote live server
+
+    steps:
+      -
+        name: Send telegram message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: Deploy of project taski is successfully completed!
