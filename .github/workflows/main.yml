@@ -8,26 +8,44 @@ on:
 jobs:
   make-tests:
     runs-on: ubuntu-latest
-    steps:
 
+    services:
+      postgres:
+        image: postgres:13.10
+        env:
+          POSTGRES_USER: django_user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: django_db
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
       # clone github repository;
       - name: Check out repository code
         uses: actions/checkout@v3
-
       # install Python3.9 in workflow server;
       - name: Set up Python3.9
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
-
       # update modules pip and setuptools, then installing requirements and flake8
       - name: Update pip and install dependency
         run: |
           pip install -U pip setuptools -r backend/requirements.txt
           pip install flake8==6.0.0 flake8-isort==6.0.0
-
       # check PEP8 of files *.py in backend/ and run django tests
-      - name: Check PEP8 with flake8
+      - name: Check PEP8 and run tests
+        env:
+          POSTGRES_USER: django_user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: django_db
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          SEPARATOR: ", "
+          DEBUG: False
+          ALLOWED_HOSTS: "localhost, 127.0.0.1"
+          CORS_ORIGIN_WHITELIST: http://localhost:3000
         run: |
           cd backend/
           flake8 .
