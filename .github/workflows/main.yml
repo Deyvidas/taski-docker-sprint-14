@@ -17,9 +17,9 @@ jobs:
       postgres:
         image: postgres:13.10
         env:
-          POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: django_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
@@ -41,14 +41,15 @@ jobs:
       -
         name: Check PEP8 and run django tests
         env:
-          POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: django_db
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          SEPARATOR: ", "
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5432
+          SEPARATOR: ","
           DEBUG: False
-          ALLOWED_HOSTS: "localhost, 127.0.0.1"
+          SECRET_KEY: django-insecure-j_89af+30&&4qm*8p4-ho8z_mlm0s$h!-p@on1_^
+          ALLOWED_HOSTS: "localhost,127.0.0.1"
           CORS_ORIGIN_WHITELIST: http://localhost:3000
         run: |
           cd backend/
@@ -168,7 +169,7 @@ jobs:
           tags: ${{ secrets.DHL }}/taski_gateway:latest
 
 
-  # -------------------------------------------------------- gateway build&push
+  # ------------------------------------ rebot with new images server container
   deploy_to_live_server:
     if: github.ref == 'refs/heads/main'
     needs:

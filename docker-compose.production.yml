@@ -18,80 +18,78 @@ networks:
 services:
   taski_db:
     image: postgres:13.10
-
     container_name: taski_db
     env_file: ./.env
     networks:
       - taski_network
+    expose:
+      - 80
     volumes:
-      - taski_pg_data:/var/lib/postgresql/data
+      - taski_pg_data:/var/lib/postgresql/data/
 
 # sudo docker pull postgres:13.10 && \
 # sudo docker container run \
 #     --name taski_db \
 #     --env-file ./.env
-#     --volumes taski_pg_data:/var/lib/postgresql/data \
+#     --volumes taski_pg_data:/var/lib/postgresql/data/ \
 #     --net taski_network \
 #     postgres:13.10
 
   taski_backend:
-    image: deyvidasb/taski_backend:1.0
-
+    image: deyvidasb/taski_backend:latest
     depends_on:
       - taski_db
-
     container_name: taski_backend
     env_file: ./.env
     networks:
       - taski_network
+    expose:
+      - 8000
     volumes:
-      - taski_static_files:/taski_backend_static
+      - taski_static_files:/taski_backend_static/
 
-# sudo docker pull deyvidasb/taski_backend:1.0 && \
+# sudo docker pull deyvidasb/taski_backend:latest && \
 # sudo docker container run \
 #     --name taski_backend \
 #     --env-file ./.env \
-#     --volumes taski_static_files:/taski_backend_static \
+#     --volumes taski_static_files:/taski_backend_static/ \
 #     --net taski_network \
 #     deyvidass/taski_backend:latest
 
   taski_frontend:
-    image: deyvidasb/taski_frontend:1.0
-
+    image: deyvidasb/taski_frontend:latest
     container_name: taski_frontend
-    env_file: ./.env
     networks:
       - taski_network
+    expose:
+      - 8000
     volumes:
-      - taski_static_files:/taski_frontend_static
+      - taski_static_files:/taski_frontend_static/
 
-# sudo docker pull deyvidasb/taski_frontend:1.0 && \
+# sudo docker pull deyvidasb/taski_frontend:latest && \
 # sudo docker container run \
 #     --name taski_frontend \
-#     --env-file ./.env \
-#     --volumes taski_static_files:/taski_frontend_static \
+#     --volumes taski_static_files:/taski_frontend_static/ \
 #     --net taski_network \
 #     deyvidass/taski_frontend:latest
 
   taski_gateway:
-    image: deyvidasb/taski_gateway:1.0
-
+    image: deyvidasb/taski_gateway:latest
     depends_on:
       - taski_backend
       - taski_frontend
-
     container_name: taski_gateway
     networks:
       - taski_network
     ports:
       - 8000:80
     volumes:
-      - taski_static_files:/taski_static
+      - taski_static_files:/var/www/taski_files/
 
-# sudo docker pull deyvidasb/taski_gateway:1.0 && \
+# sudo docker pull deyvidasb/taski_gateway:latest && \
 # sudo docker container run \
 #     --name taski_gateway \
 #     --publish 8000:80 \
-#     --volumes taski_static_files:/taski_static \
+#     --volumes taski_static_files:/var/www/taski_files/ \
 #     --net taski_network \
 #     taski_gataway:latest

@@ -1,14 +1,13 @@
 FROM node:18
 WORKDIR /app
 
-COPY package.json package.json
-COPY package-lock.json package-lock.json
+COPY package.json /app/package.json
+COPY package-lock.json /app/package-lock.json
 
 RUN npm install
 
 COPY . .
+
 RUN npm run build
 
-RUN chmod +x collect_frontend_static.sh
-
-CMD /app/collect_frontend_static.sh
+CMD npx -y http-server -p 8000 /app/build/
