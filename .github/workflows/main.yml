@@ -83,6 +83,24 @@ jobs:
           npm run test
 
 
+  # ----------------------------------------------------- telegram notification
+  send_message_to_telegram_testing:
+    needs:
+      - backend_tests
+      - frontend_tests
+    runs-on: ubuntu-latest
+    name: Send message about successed testing of backend and frontend
+
+    steps:
+      -
+        name: Send telegram message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: Testing of project taski is successfully passed!
+
+
   # -------------------------------------------------------- backend build&push
   backend_build_and_push_to_dockerhub:
     if: github.ref == 'refs/heads/main'
@@ -213,6 +231,7 @@ jobs:
 
   # ----------------------------------------------------- telegram notification
   send_message_to_telegram:
+    if: github.ref == 'refs/heads/main'
     needs: deploy_to_live_server
     runs-on: ubuntu-latest
     name: Send message about successed deploy of docker-compose to remote live server
